@@ -4,12 +4,15 @@ import CoreData
 class TodoListViewController: UITableViewController {
 
     var todoListRepo = TodoListRepo()
-
+    var category: Category? {
+        didSet {
+            todoListRepo.category = category
+        }
+    }
+    
     @IBOutlet weak var searchBar: UISearchBar!
     
     override func viewDidLoad() {
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        todoListRepo.retrieveData()
         searchBar.delegate = self
     }
     
@@ -47,9 +50,11 @@ class TodoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
-    func addNewItem(_ newItemTitle: String) {
-        todoListRepo.addNewItem(newItemTitle)
-        tableView.reloadData()
+    func addNewItem(_ title: String) {
+        if let safeCategory = category {
+            todoListRepo.addNewItem(title, for: safeCategory)
+            tableView.reloadData()
+        }
     }
 }
 
