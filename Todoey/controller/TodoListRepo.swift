@@ -1,57 +1,66 @@
 import Foundation
+import UIKit
+import CoreData
 
-struct TodoListRepo {
+class TodoListRepo {
     
-    let decoder  = PropertyListDecoder()
-    let encoder  = PropertyListEncoder()
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
-    
+    private let context: NSManagedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     var itemArray = [Item]()
+            
+//    mutating fileprivate func initDummyData() {
+//        let newItem1 = Item("Release 3.1.2")
+//        let newItem2 = Item("Voorstel Sync")
+//        let newItem3 = Item("Testcases afronden")
+//        let newItem4 = Item("iOS cursus")
+//        itemArray.append(newItem1)
+//        itemArray.append(newItem2)
+//        itemArray.append(newItem3)
+//        itemArray.append(newItem4)
+//    }
     
-    init() {
-        print("Location: \(dataFilePath!)")
-    }
-    
-    mutating fileprivate func initDummyData() {
-        let newItem1 = Item("Release 3.1.2")
-        let newItem2 = Item("Voorstel Sync")
-        let newItem3 = Item("Testcases afronden")
-        let newItem4 = Item("iOS cursus")
-        itemArray.append(newItem1)
-        itemArray.append(newItem2)
-        itemArray.append(newItem3)
-        itemArray.append(newItem4)
-    }
-    
-    mutating func addNewItem(_ newItem: Item) {
-        itemArray.append(newItem)
-        saveData()
-    }
-    
-    mutating func toggleDone(_ index: Int) {
-        itemArray[index].toggleDone()
-        saveData()
-    }
-    
-    func retrieveData() -> [Item] {
-        if let data = try? Data(contentsOf: dataFilePath!) {
-            do {
-                return try decoder.decode([Item].self, from: data)
-            }
-            catch {
-                print("Error decoding itemArray: \(error)")
-            }
-        }
-        return [Item]() // Nothing found? return empty list!
-    }
-    
-    func saveData() {
+    func retrieveData(with request: NSFetchRequest<Item> = Item.fetchRequest()) {
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error fetching data from context: \(error)")
         }
-        catch {
-            print("Error encoding itemArray: \(error)")
+    }
+    
+    private func saveData() {
+        do {
+            try context.save()
+        } catch {
+            print("Error saving context: \(error)")
         }
+    }
+        
+    func addNewItem(_ newItemTitle: String) {
+        let newItem = Item(context: context)
+        newItem.title = newItemTitle
+        newItem.done = false
+
+        itemArray.append(newItem)
+        
+        saveData()
+    }
+    
+    func toggleDone(at index: Int) {
+        itemArray[index].done = !itemArray[index].done
+//        itemArray[index].toggleDone()
+
+        saveData()
+    }
+    
+    func searchItem(_ searchText: String) {
+        print("searchItem: \(searchText)")
+
+        let request: NSFetchRequest<Item> = Item.fetchRequest()
+        if (!searchText.isEmpty) {
+            let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchText)
+            
+            request.predicate = predicate
+            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        }
+        retrieveData(with: request)
     }
 }
