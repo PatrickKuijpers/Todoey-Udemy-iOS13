@@ -1,7 +1,7 @@
 import UIKit
-import CoreData
+import ChameleonFramework
 
-class TodoListViewController: UITableViewController {
+class TodoListViewController: SwipeTableViewController {
 
     var todoListRepo = TodoListRepo()
     var category: Category? {
@@ -13,7 +13,23 @@ class TodoListViewController: UITableViewController {
     @IBOutlet weak var searchBar: UISearchBar!
     
     override func viewDidLoad() {
+        super.viewDidLoad()
         searchBar.delegate = self
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        if let safeCategory = category {
+            title = safeCategory.name
+            
+            if let categoryColor = UIColor(hexString: safeCategory.backgroundColor) {
+                updateNavBarColor(categoryColor)
+                
+                searchBar.barTintColor = categoryColor
+                searchBar.searchTextField.backgroundColor = FlatWhite()
+            }
+        }
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -21,9 +37,13 @@ class TodoListViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: K.id.ToDoItemCell, for: indexPath)
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if let item = todoListRepo.todoItems?[indexPath.row] {
             cell.textLabel?.text = item.title
+            if let safeCategory = category, let backgroundColor = UIColor(hexString: safeCategory.backgroundColor)?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(todoListRepo.todoItems!.count)) {
+                cell.backgroundColor = backgroundColor
+                cell.textLabel?.textColor = ContrastColorOf(backgroundColor, returnFlat: true)
+            }
             cell.accessoryType = item.done ? .checkmark : .none
         }
         else {
@@ -55,14 +75,17 @@ class TodoListViewController: UITableViewController {
     }
     
     func addNewItem(_ title: String) {
-        if let safeCategory = category {
-            todoListRepo.addNewItem(title, for: safeCategory)
-            tableView.reloadData()
-        }
+        todoListRepo.addNewItem(title, for: category)
+        tableView.reloadData()
+    }
+    
+    override func removeItem(for index: Int) {
+        todoListRepo.removeItem(at: index)
     }
 }
 
 //MARK: - SearchBar
+
 extension TodoListViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         todoListRepo.searchItem(searchBar.text!)

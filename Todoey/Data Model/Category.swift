@@ -3,6 +3,7 @@ import RealmSwift
 
 class Category: Object {
     @objc dynamic var name: String = ""
+    @objc dynamic var backgroundColor: String = UIColor.black.hexValue()
     let items = List<Item>()
     
     required init() {
@@ -12,5 +13,6 @@ class Category: Object {
     required init(_ name: String) {
         super.init()
         self.name = name
+        self.backgroundColor = UIColor.randomFlat().hexValue()
     }
 }

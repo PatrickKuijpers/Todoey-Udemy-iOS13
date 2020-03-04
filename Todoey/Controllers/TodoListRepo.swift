@@ -19,14 +19,28 @@ class TodoListRepo {
         todoItems = category?.items.sorted(byKeyPath: SORT_BY, ascending: SORT_ASCENDING)
     }
         
-    func addNewItem(_ title: String, for category: Category) {
-        do {
-            try realm.write {
-                let newItem = Item(title)
-                category.items.append(newItem)
+    func addNewItem(_ title: String, for category: Category?) {
+        if let safeCategory = category {
+            do {
+                try realm.write {
+                    let newItem = Item(title)
+                    safeCategory.items.append(newItem)
+                }
+            } catch {
+                print("Error saving new Item(\(title)): \(error)")
             }
-        } catch {
-            print("Error saving new Item(\(title)): \(error)")
+        }
+    }
+    
+    func removeItem(at index: Int) {
+        if let item = todoItems?[index] {
+            do {
+                try realm.write {
+                    realm.delete(item)
+                }
+            } catch {
+                print("Error deleting Item[\(item.title)] in Realm: \(error)")
+            }
         }
     }
     

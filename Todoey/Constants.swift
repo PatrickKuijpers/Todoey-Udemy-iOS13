@@ -2,8 +2,7 @@ import Foundation
 
 struct K {
     struct id {
-        static let CategoryCell = "CategoryCell"
-        static let ToDoItemCell = "ToDoItemCell"
+        static let SwipableCell = "SwipableCell"
     }
     struct navigation {
         static let CategoryToDetailItems = "goToItems"

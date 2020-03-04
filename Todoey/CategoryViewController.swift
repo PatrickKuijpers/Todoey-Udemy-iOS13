@@ -1,12 +1,21 @@
 import UIKit
+import ChameleonFramework
 
-class CategoryViewController: UITableViewController {
+class CategoryViewController: SwipeTableViewController {
     
     var categoryListRepo = CategoryListRepo()
     
     override func viewDidLoad() {
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        super.viewDidLoad()
         categoryListRepo.retrieveData()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        if let navBarBackgroundColor = UIColor(hexString: "1D9BF6") {
+            updateNavBarColor(navBarBackgroundColor)
+        }
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -14,14 +23,22 @@ class CategoryViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: K.id.CategoryCell, for: indexPath)
-        cell.textLabel?.text = categoryListRepo.categories?[indexPath.row].name ?? "No categories added yet"
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
+        if let category = categoryListRepo.categories?[indexPath.row] {
+            cell.textLabel?.text = category.name
+            if let categoryColor = UIColor(hexString: category.backgroundColor) {
+                cell.backgroundColor = categoryColor
+                cell.textLabel?.textColor = ContrastColorOf(categoryColor, returnFlat: true)
+            }
+        }
+        else {
+            cell.textLabel?.text = "No categories added yet"
+        }
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: K.navigation.CategoryToDetailItems, sender: self)
-        
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -50,5 +67,9 @@ class CategoryViewController: UITableViewController {
     func addNewCategory(_ title: String) {
         categoryListRepo.addNewCategory(title)
         tableView.reloadData()
+    }
+    
+    override func removeItem(for index: Int) {
+        categoryListRepo.removeCategory(for: index)
     }
 }

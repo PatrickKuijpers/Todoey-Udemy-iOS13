@@ -17,7 +17,7 @@ class CategoryListRepo {
                 realm.add(category)
             }
         } catch {
-            print("Error saving in Realm: \(error)")
+            print("Error saving Category[\(category.name)] in Realm: \(error)")
         }
     }
        
@@ -25,5 +25,17 @@ class CategoryListRepo {
         let newCategory = Category(name)
 
         saveData(category: newCategory)
+    }
+    
+    func removeCategory(for index: Int) {
+        if let category = categories?[index] {
+            do {
+                try realm.write {
+                    realm.delete(category)
+                }
+            } catch {
+                print("Error deleting Category[\(category.name)] in Realm: \(error)")
+            }
+        }
     }
 }
