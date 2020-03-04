@@ -1,5 +1,4 @@
 import UIKit
-import CoreData
 
 class CategoryViewController: UITableViewController {
     
@@ -11,13 +10,12 @@ class CategoryViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categoryListRepo.categoryArray.count
+        return categoryListRepo.categories?.count ?? 1
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: K.id.CategoryCell, for: indexPath)
-        let currentCategory = categoryListRepo.categoryArray[indexPath.row]
-        cell.textLabel?.text = currentCategory.name
+        cell.textLabel?.text = categoryListRepo.categories?[indexPath.row].name ?? "No categories added yet"
         return cell
     }
     
@@ -29,7 +27,7 @@ class CategoryViewController: UITableViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let destinationVC = segue.destination as! TodoListViewController
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.category = categoryListRepo.categoryArray[indexPath.row]
+            destinationVC.category = categoryListRepo.categories?[indexPath.row]
         }
     }
     

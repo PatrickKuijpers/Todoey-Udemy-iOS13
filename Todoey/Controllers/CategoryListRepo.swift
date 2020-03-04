@@ -1,34 +1,29 @@
 import Foundation
 import UIKit
-import CoreData
+import RealmSwift
 
 class CategoryListRepo {
     
-    private let context: NSManagedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    var categoryArray = [Category]()
+    let realm = try! Realm()
+    var categories: Results<Category>?
     
-    func retrieveData(with request: NSFetchRequest<Category> = Category.fetchRequest()) {
-        do {
-            categoryArray = try context.fetch(request)
-        } catch {
-            print("Error fetching data from context: \(error)")
-        }
+    func retrieveData() {
+        categories = realm.objects(Category.self)
     }
     
-    private func saveData() {
+    private func saveData(category: Category) {
         do {
-            try context.save()
+            try realm.write {
+                realm.add(category)
+            }
         } catch {
-            print("Error saving context: \(error)")
+            print("Error saving in Realm: \(error)")
         }
     }
        
     func addNewCategory(_ name: String) {
-        let newCategory = Category(context: context)
-        newCategory.name = name
+        let newCategory = Category(name)
 
-        categoryArray.append(newCategory)
-        
-        saveData()
+        saveData(category: newCategory)
     }
 }
